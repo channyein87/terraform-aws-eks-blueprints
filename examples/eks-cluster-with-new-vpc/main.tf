@@ -20,7 +20,12 @@ data "aws_eks_cluster_auth" "this" {
   name = module.eks_blueprints.eks_cluster_id
 }
 
-data "aws_availability_zones" "available" {}
+data "aws_availability_zones" "available" {
+  filter {
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
+  }
+}
 
 locals {
   name = basename(path.cwd)
@@ -45,7 +50,7 @@ module "eks_blueprints" {
   source = "../.."
 
   cluster_name    = local.cluster_name
-  cluster_version = "1.23"
+  cluster_version = "1.24"
 
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnets
@@ -105,7 +110,8 @@ module "eks_blueprints_kubernetes_addons" {
       },
     ]
   }
-  enable_cert_manager_csi_driver = true
+  # TODO - requires dependency on `cert-manager` for namespace
+  # enable_cert_manager_csi_driver = true
 
   tags = local.tags
 }
